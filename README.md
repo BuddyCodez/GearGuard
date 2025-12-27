@@ -1,11 +1,6 @@
 # GearGuard: The Ultimate Maintenance Tracker
 
 ## Team Details
-
-- **Jaydip Bariya** (Leader)
-- **Udit Vegad**
-- **Jaimin Solanki**
-- **Miral Padmani**
 - **Jaydip Bariya** (Leader)
 - **Udit Vegad**
 - **Jaimin Solanki**
