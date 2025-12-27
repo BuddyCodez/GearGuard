@@ -1,13 +1,26 @@
-import { preloadAuthQuery } from "@/lib/auth-server"
-import { api } from "@/convex/_generated/api"
+"use client"
 
-export default async function DashboardLayout({
+import { AuthDrawer } from "@/components/web/auth-drawer"
+import { useAuthDrawer } from "@/hooks/use-auth-drawer"
+import { useEffect, useState } from "react"
+
+export default function DashboardLayout({
     children,
 }: {
     children: React.ReactNode
 }) {
-    // Preload user query on server to eliminate flash
-    await preloadAuthQuery(api.users.getViewer)
+    const { isOpen, close } = useAuthDrawer()
+    const [mounted, setMounted] = useState(false)
 
-    return <>{children}</>
+    // Prevent hydration mismatch by only rendering AuthDrawer on client
+    useEffect(() => {
+        setMounted(true)
+    }, [])
+
+    return (
+        <>
+            {children}
+            {mounted && <AuthDrawer open={isOpen} onOpenChange={close} />}
+        </>
+    )
 }

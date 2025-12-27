@@ -42,6 +42,13 @@ const requestSchema = z.object({
     priority: z.enum(["low", "medium", "high", "critical"]),
 })
 
+const priorityLabels = {
+    low: "Low - Can wait",
+    medium: "Medium - Normal",
+    high: "High - Important",
+    critical: "Critical - Urgent!",
+}
+
 interface UserRequestDrawerProps {
     open?: boolean
     onOpenChange?: (open: boolean) => void
@@ -139,7 +146,9 @@ export function UserRequestDrawer({ open, onOpenChange }: UserRequestDrawerProps
                                         >
                                             <FormControl>
                                                 <SelectTrigger className="bg-white/5 border-white/10 text-white h-11">
-                                                    <SelectValue />
+                                                    <SelectValue>
+                                                        {equipment?.find(e => e._id === field.value)?.name || "Select equipment"}
+                                                    </SelectValue>
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent className="bg-[#1a1a1c] border-white/10 text-white">
@@ -148,8 +157,9 @@ export function UserRequestDrawer({ open, onOpenChange }: UserRequestDrawerProps
                                                         key={item._id}
                                                         value={item._id}
                                                         className="focus:bg-white/10 focus:text-white"
+                                                        disabled={item.isScrapped}
                                                     >
-                                                        {item.name}
+                                                        {item.name} {item.isScrapped && "(Scrapped)"}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
@@ -174,7 +184,9 @@ export function UserRequestDrawer({ open, onOpenChange }: UserRequestDrawerProps
                                         >
                                             <FormControl>
                                                 <SelectTrigger className="bg-white/5 border-white/10 text-white focus:bg-white/10 transition-colors h-11">
-                                                    <SelectValue />
+                                                    <SelectValue>
+                                                        {priorityLabels[field.value as keyof typeof priorityLabels]}
+                                                    </SelectValue>
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent className="bg-[#1a1a1c] border-white/10 text-white">

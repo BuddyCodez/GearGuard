@@ -18,14 +18,36 @@ import { CategoryDrawer } from "@/components/web/category-drawer"
 import { EquipmentDrawer } from "@/components/web/equipment-drawer"
 import { cn } from "@/lib/utils"
 
-export function EquipmentView() {
+interface EquipmentViewProps {
+    searchQuery?: string
+}
+
+export function EquipmentView({ searchQuery = "" }: EquipmentViewProps) {
     const [view, setView] = useState<"equipment" | "categories" | "teams">("equipment")
+    const viewer = useQuery(api.users.getViewer)
+    const isManager = viewer?.role === "manager"
+
     const equipment = useQuery(api.equipment.list)
     const categories = useQuery(api.categories.list)
     const teams = useQuery(api.teams.list)
-    const users = useQuery(api.users.getUsers)
-    const viewer = useQuery(api.users.getViewer)
-    const isManager = viewer?.role === "manager"
+
+    // Only managers need user lists (for showing responsible person in categories)
+    // Use "skip" to prevent query execution for non-managers
+    const users = useQuery(api.users.getUsers, isManager ? {} : "skip")
+
+    // Filter equipment
+    const filteredEquipment = equipment?.filter((item) => {
+        if (!searchQuery) return true
+        const query = searchQuery.toLowerCase()
+        return item.name.toLowerCase().includes(query)
+    })
+
+    // Filter categories
+    const filteredCategories = categories?.filter((category) => {
+        if (!searchQuery) return true
+        const query = searchQuery.toLowerCase()
+        return category.name.toLowerCase().includes(query) || (category.company || "").toLowerCase().includes(query)
+    })
 
     return (
         <div className="space-y-6">
@@ -155,7 +177,7 @@ export function EquipmentView() {
                             <TableRow className="border-white/5 hover:bg-white/5">
                                 <TableHead className="text-zinc-400 font-medium">Name</TableHead>
                                 <TableHead className="text-zinc-400 font-medium">Company</TableHead>
-                                <TableHead className="text-zinc-400 font-medium">Responsible Person</TableHead>
+                                {isManager && <TableHead className="text-zinc-400 font-medium">Responsible Person</TableHead>}
                                 <TableHead className="text-right text-zinc-400 font-medium">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -171,18 +193,20 @@ export function EquipmentView() {
                                         </div>
                                     </TableCell>
                                     <TableCell className="text-zinc-400">{category.company}</TableCell>
-                                    <TableCell className="text-zinc-400">
-                                        {category.responsibleUserId ? (
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-5 h-5 rounded-full bg-zinc-800 flex items-center justify-center text-xs text-zinc-400">
-                                                    {users?.find(u => u._id === category.responsibleUserId)?.name?.charAt(0) || "?"}
+                                    {isManager && (
+                                        <TableCell className="text-zinc-400">
+                                            {category.responsibleUserId ? (
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-5 h-5 rounded-full bg-zinc-800 flex items-center justify-center text-xs text-zinc-400">
+                                                        {users?.find((u: any) => u._id === category.responsibleUserId)?.name?.charAt(0) || "?"}
+                                                    </div>
+                                                    {users?.find((u: any) => u._id === category.responsibleUserId)?.name || "Unknown"}
                                                 </div>
-                                                {users?.find(u => u._id === category.responsibleUserId)?.name || "Unknown"}
-                                            </div>
-                                        ) : (
-                                            <span className="text-zinc-600 italic">Unassigned</span>
-                                        )}
-                                    </TableCell>
+                                            ) : (
+                                                <span className="text-zinc-600 italic">Unassigned</span>
+                                            )}
+                                        </TableCell>
+                                    )}
                                     <TableCell className="text-right">
                                         {isManager && (
                                             <CategoryDrawer

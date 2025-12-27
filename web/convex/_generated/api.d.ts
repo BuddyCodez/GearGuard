@@ -14,6 +14,7 @@ import type * as categories from "../categories.js";
 import type * as equipment from "../equipment.js";
 import type * as http from "../http.js";
 import type * as maintenanceRequests from "../maintenanceRequests.js";
+import type * as notifications from "../notifications.js";
 import type * as reports from "../reports.js";
 import type * as seed from "../seed.js";
 import type * as teams from "../teams.js";
@@ -32,6 +33,7 @@ declare const fullApi: ApiFromModules<{
   equipment: typeof equipment;
   http: typeof http;
   maintenanceRequests: typeof maintenanceRequests;
+  notifications: typeof notifications;
   reports: typeof reports;
   seed: typeof seed;
   teams: typeof teams;

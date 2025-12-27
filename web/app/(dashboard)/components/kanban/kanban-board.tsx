@@ -18,6 +18,13 @@ const statusLabels: Record<Status, string> = {
     scrap: "Scrap",
 }
 
+const statusColors: Record<Status, string> = {
+    new: "bg-blue-500",
+    in_progress: "bg-yellow-500",
+    repaired: "bg-green-500",
+    scrap: "bg-red-500",
+}
+
 const priorityConfig = {
     critical: { color: "bg-red-500/20 border-red-500/40 text-red-300", icon: true },
     high: { color: "bg-orange-500/20 border-orange-500/40 text-orange-300", icon: true },
@@ -27,13 +34,20 @@ const priorityConfig = {
 
 const statusOrder: Status[] = ["new", "in_progress", "repaired", "scrap"]
 
-export function KanbanBoard() {
+interface KanbanBoardProps {
+    searchQuery?: string
+}
+
+export function KanbanBoard({ searchQuery = "" }: KanbanBoardProps) {
     const requests = useQuery(api.maintenanceRequests.listAllRequests)
     const updateStatus = useMutation(api.maintenanceRequests.updateStatus)
+    const user = useQuery(api.users.getViewer)
 
     const [selectedRequestId, setSelectedRequestId] = useState<Id<"maintenanceRequests"> | null>(null)
     const [draggedId, setDraggedId] = useState<Id<"maintenanceRequests"> | null>(null)
     const [optimisticUpdates, setOptimisticUpdates] = useState<Map<Id<"maintenanceRequests">, Status>>(new Map())
+
+    const isManager = user?.role === "manager"
 
     // Memoize grouped requests for performance - only recalculate when data changes
     const groupedRequests = useMemo(() => {
@@ -43,6 +57,18 @@ export function KanbanBoard() {
         statusOrder.forEach(status => groups.set(status, []))
 
         requests.forEach(request => {
+            // Filter by search query
+            if (searchQuery) {
+                const query = searchQuery.toLowerCase()
+                const matchesSubject = request.subject.toLowerCase().includes(query)
+                const matchesEquipment = (request.equipment?.name || "").toLowerCase().includes(query)
+                const matchesTechnician = (request.assignedTechnician?.name || "").toLowerCase().includes(query)
+
+                if (!matchesSubject && !matchesEquipment && !matchesTechnician) {
+                    return
+                }
+            }
+
             // Use optimistic status if available, otherwise use actual status
             const status = (optimisticUpdates.get(request._id) || request.status) as Status
             groups.get(status)?.push(request)
@@ -134,9 +160,12 @@ export function KanbanBoard() {
                         >
                             {/* Column Header */}
                             <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/10">
-                                <h3 className="font-semibold text-white text-sm">
-                                    {statusLabels[status]}
-                                </h3>
+                                <div className="flex items-center gap-2">
+                                    <div className={cn("w-2 h-2 rounded-full", statusColors[status])} />
+                                    <h3 className="font-semibold text-white text-sm">
+                                        {statusLabels[status]}
+                                    </h3>
+                                </div>
                                 <span className="text-xs font-medium text-zinc-500 bg-white/5 px-2 py-1 rounded-full">
                                     {columnRequests.length}
                                 </span>
@@ -160,16 +189,21 @@ export function KanbanBoard() {
                                                 isOptimistic && "opacity-60 scale-95 pointer-events-none"
                                             )}
                                         >
-                                            {/* Priority Badge */}
+                                            {/* Priority Badge - Only show to managers */}
                                             <div className="flex items-center justify-between mb-3">
+                                                {isManager && (
+                                                    <span className={cn(
+                                                        "text-[10px] font-medium px-2 py-1 rounded-full border flex items-center gap-1",
+                                                        config.color
+                                                    )}>
+                                                        {config.icon && <AlertTriangle className="w-3 h-3" />}
+                                                        {priority.toUpperCase()}
+                                                    </span>
+                                                )}
                                                 <span className={cn(
-                                                    "text-[10px] font-medium px-2 py-1 rounded-full border flex items-center gap-1",
-                                                    config.color
+                                                    "text-[10px] text-zinc-500 bg-white/5 px-2 py-0.5 rounded",
+                                                    !isManager && "ml-0"
                                                 )}>
-                                                    {config.icon && <AlertTriangle className="w-3 h-3" />}
-                                                    {priority.toUpperCase()}
-                                                </span>
-                                                <span className="text-[10px] text-zinc-500 bg-white/5 px-2 py-0.5 rounded">
                                                     {request.type === "preventive" ? "Preventive" : "Corrective"}
                                                 </span>
                                             </div>

@@ -24,7 +24,11 @@ const stageLabels = {
     scrap: "Scrapped",
 }
 
-export function UserRequestsView() {
+interface UserRequestsViewProps {
+    searchQuery?: string
+}
+
+export function UserRequestsView({ searchQuery = "" }: UserRequestsViewProps) {
     const requests = useQuery(api.maintenanceRequests.listMyRequests)
     const [selectedRequestId, setSelectedRequestId] = useState<Id<"maintenanceRequests"> | null>(null)
     const [isCreateOpen, setIsCreateOpen] = useState(false)
@@ -40,6 +44,15 @@ export function UserRequestsView() {
         if (hours < 24) return `${hours}h ago`
         return `${days}d ago`
     }
+
+    // Filter requests
+    const filteredRequests = requests?.filter((req) => {
+        if (!searchQuery) return true
+        const query = searchQuery.toLowerCase()
+        const matchesSubject = req.subject.toLowerCase().includes(query)
+        const matchesEquipment = (req.equipment?.name || "").toLowerCase().includes(query)
+        return matchesSubject || matchesEquipment
+    })
 
     return (
         <div className="space-y-6">
@@ -61,7 +74,7 @@ export function UserRequestsView() {
             </div>
 
             {/* Requests Table */}
-            {requests && requests.length > 0 ? (
+            {filteredRequests && filteredRequests.length > 0 ? (
                 <div className="rounded-xl border border-white/10 bg-black/20 backdrop-blur-xl overflow-hidden shadow-2xl">
                     <table className="w-full text-left border-collapse">
                         <thead>
@@ -81,7 +94,7 @@ export function UserRequestsView() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5">
-                            {requests.map((request) => (
+                            {filteredRequests.map((request) => (
                                 <tr
                                     key={request._id}
                                     onClick={() => setSelectedRequestId(request._id)}
@@ -127,17 +140,23 @@ export function UserRequestsView() {
                         <div className="w-16 h-16 rounded-full bg-indigo-500/10 flex items-center justify-center mx-auto mb-4 border border-indigo-500/20">
                             <AlertCircle className="w-8 h-8 text-indigo-400" />
                         </div>
-                        <h3 className="text-lg font-semibold text-white mb-2">No Requests Yet</h3>
+                        <h3 className="text-lg font-semibold text-white mb-2">
+                            {searchQuery ? "No matching requests" : "No Requests Yet"}
+                        </h3>
                         <p className="text-sm text-zinc-400 mb-6">
-                            You haven't created any maintenance requests. Click the button above to report an issue with your equipment.
+                            {searchQuery
+                                ? "Try adjusting your search terms"
+                                : "You haven't created any maintenance requests. Click the button above to report an issue with your equipment."}
                         </p>
-                        <Button
-                            onClick={() => setIsCreateOpen(true)}
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20"
-                        >
-                            <Plus className="w-4 h-4 mr-2" />
-                            Create Your First Request
-                        </Button>
+                        {!searchQuery && (
+                            <Button
+                                onClick={() => setIsCreateOpen(true)}
+                                className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20"
+                            >
+                                <Plus className="w-4 h-4 mr-2" />
+                                Create Your First Request
+                            </Button>
+                        )}
                     </div>
                 </div>
             )}

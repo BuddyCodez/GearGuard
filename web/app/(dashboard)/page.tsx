@@ -14,6 +14,7 @@ import { CalendarView } from "./components/calendar/calendar-view"
 import { EquipmentView } from "./components/views/equipment-view"
 import { TeamsView } from "./components/teams/teams-view"
 import { UserRequestsView } from "./components/views/user-requests-view"
+import { TechnicianView } from "./components/views/technician-view"
 import { ReportsView } from "./components/views/reports-view"
 import { LoggedOutView } from "./components/views/logged-out-view"
 import { UserSync } from "@/components/web/user-sync"
@@ -22,6 +23,7 @@ import { canViewKanban } from "@/lib/permissions"
 export default function DashboardPage() {
     const [view, setView] = useState<"table" | "kanban">("table")
     const [activeTab, setActiveTab] = useState("Maintenance")
+    const [searchQuery, setSearchQuery] = useState("")
     const user = useQuery(api.users.getViewer)
 
     // Show logged out view if no user (preloaded query will make this instant)
@@ -35,17 +37,28 @@ export default function DashboardPage() {
     }
 
     const isNormalUser = user?.role === "user"
+    const isTechnician = user?.role === "technician"
     const showKanbanToggle = canViewKanban(user?.role)
     const isManager = user?.role === "manager"
+
+    const handleTabChange = (tab: string) => {
+        setActiveTab(tab)
+        setSearchQuery("") // Clear search when switching tabs
+    }
 
     return (
         <div className="min-h-screen bg-[#0B0B0D] text-white font-sans selection:bg-white/20">
             <UserSync />
-            <TopBar currentTab={activeTab} onTabChange={setActiveTab} />
+            <TopBar
+                currentTab={activeTab}
+                onTabChange={handleTabChange}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+            />
 
             <main className="max-w-[1600px] mx-auto px-6 py-8">
-                {/* KPI Section - Only show on Maintenance tab for non-normal users */}
-                {activeTab === "Maintenance" && !isNormalUser && <KPICards />}
+                {/* KPI Section - Only show on Maintenance tab for managers */}
+                {activeTab === "Maintenance" && isManager && <KPICards />}
 
                 {/* Main Work Area */}
                 <div className="space-y-4">
@@ -54,10 +67,15 @@ export default function DashboardPage() {
                             {isNormalUser ? (
                                 // Simplified view for normal users
                                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                    <UserRequestsView />
+                                    <UserRequestsView searchQuery={searchQuery} />
+                                </div>
+                            ) : isTechnician ? (
+                                // Dedicated technician work queue view
+                                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                    <TechnicianView searchQuery={searchQuery} />
                                 </div>
                             ) : (
-                                // Full view for technicians and managers
+                                // Manager view with full controls
                                 <>
                                     {/* Toolbar */}
                                     <div className="flex items-center justify-between">
@@ -95,16 +113,23 @@ export default function DashboardPage() {
 
                                     {/* Content */}
                                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                        {view === "table" && <RequestTable />}
-                                        {view === "kanban" && <KanbanBoard />}
+                                        {view === "table" && <RequestTable searchQuery={searchQuery} />}
+                                        {view === "kanban" && <KanbanBoard searchQuery={searchQuery} />}
                                     </div>
                                 </>
                             )}
                         </>
                     )}
 
-                    {activeTab === "Calendar" && isManager && (
+                    {activeTab === "Calendar" && (isTechnician || isManager) && (
                         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            {isTechnician && (
+                                <div className="mb-4 p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                                    <p className="text-sm text-blue-300">
+                                        <strong>Scheduled Maintenance:</strong> View upcoming preventive maintenance jobs for your team. Contact your manager to reschedule.
+                                    </p>
+                                </div>
+                            )}
                             <CalendarView />
                         </div>
                     )}
@@ -117,13 +142,13 @@ export default function DashboardPage() {
 
                     {activeTab === "Equipment" && (
                         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                            <EquipmentView />
+                            <EquipmentView searchQuery={searchQuery} />
                         </div>
                     )}
 
                     {activeTab === "Teams" && (
                         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                            <TeamsView />
+                            <TeamsView searchQuery={searchQuery} />
                         </div>
                     )}
                 </div>

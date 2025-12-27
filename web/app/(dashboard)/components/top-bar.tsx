@@ -1,23 +1,28 @@
 "use client"
 
 import { Search, Bell, User } from "lucide-react"
-import { useState } from "react"
 import { cn } from "@/lib/utils"
-import { AuthDrawer } from "@/components/web/auth-drawer"
 import { EquipmentDrawer } from "@/components/web/equipment-drawer"
 import { authClient } from "@/lib/auth-client"
 import { useQuery } from "convex/react"
 import { api } from "@/convex/_generated/api"
 import { getVisibleTabs } from "@/lib/permissions"
+import { useAuthDrawer } from "@/hooks/use-auth-drawer"
+import { useState } from "react"
+import { NotificationDrawer } from "@/app/(dashboard)/components/drawers/notification-drawer"
 
 interface TopBarProps {
     currentTab: string
     onTabChange: (tab: string) => void
+    searchQuery: string
+    setSearchQuery: (query: string) => void
 }
 
-export function TopBar({ currentTab, onTabChange }: TopBarProps) {
-    const [isAuthOpen, setIsAuthOpen] = useState(false)
+export function TopBar({ currentTab, onTabChange, searchQuery, setSearchQuery }: TopBarProps) {
+    const { open: openAuthDrawer } = useAuthDrawer()
     const { data: session } = authClient.useSession()
+    const [isNotificationOpen, setIsNotificationOpen] = useState(false)
+    const unreadCount = useQuery(api.notifications.getUnreadCount)
 
     // Fetch user role from Convex to check permissions
     const user = useQuery(api.users.getViewer)
@@ -54,25 +59,45 @@ export function TopBar({ currentTab, onTabChange }: TopBarProps) {
                         <Search className="absolute left-3 top-2.5 w-4 h-4 text-zinc-500 group-focus-within:text-white transition-colors" />
                         <input
                             type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder={isNormalUser ? "Search my requests..." : "Search requests, equipment, or technicians..."}
-                            className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/10 focus:border-white/20 transition-all"
+                            className="w-full pl-10 pr-10 py-2 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-white/10 focus:border-white/20 transition-all"
                         />
+                        {searchQuery && (
+                            <button
+                                onClick={() => setSearchQuery("")}
+                                className="absolute right-3 top-2.5 text-zinc-500 hover:text-white transition-colors"
+                            >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        )}
                     </div>
                 </div>
 
-                {/* Right: Actions & Profile */}
-                <div className="flex items-center gap-4">
+                {/* Right Side Actions */}
+                <div className="flex items-center gap-3">
                     {isManager && <EquipmentDrawer />}
 
-                    <button className="p-2 rounded-full hover:bg-white/5 text-zinc-400 hover:text-white transition-colors relative">
-                        <Bell className="w-5 h-5" />
-                        <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-[#0B0B0D]" />
+                    {/* Notification Bell */}
+                    <button
+                        onClick={() => setIsNotificationOpen(true)}
+                        className="relative p-2 rounded-lg hover:bg-white/5 transition-all group"
+                    >
+                        <Bell className="w-5 h-5 text-zinc-400 group-hover:text-white transition-colors" />
+                        {unreadCount && unreadCount > 0 && (
+                            <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center animate-pulse">
+                                {unreadCount > 9 ? "9+" : unreadCount}
+                            </span>
+                        )}
                     </button>
 
                     <div className="h-6 w-px bg-white/10" />
 
                     <button
-                        onClick={() => setIsAuthOpen(true)}
+                        onClick={openAuthDrawer}
                         className="flex items-center gap-3 pl-2 pr-1 py-1 rounded-full hover:bg-white/5 transition-all group"
                     >
                         <div className="text-right hidden sm:block">
@@ -94,7 +119,10 @@ export function TopBar({ currentTab, onTabChange }: TopBarProps) {
                 </div>
             </div>
 
-            <AuthDrawer open={isAuthOpen} onOpenChange={setIsAuthOpen} />
+            <NotificationDrawer
+                open={isNotificationOpen}
+                onOpenChange={setIsNotificationOpen}
+            />
         </div>
     )
 }

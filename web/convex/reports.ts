@@ -13,7 +13,7 @@ async function getCurrentUser(ctx: any) {
 
     return await ctx.db
         .query("users")
-        .withIndex("by_authUserId", (q) => q.eq("authUserId", userId.subject))
+        .withIndex("by_authUserId", (q: any) => q.eq("authUserId", userId.subject))
         .first()
 }
 
