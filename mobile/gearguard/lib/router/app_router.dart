@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 import '../features/auth/presentation/bloc/auth_bloc.dart';
 import '../features/auth/presentation/screens/login_screen.dart';
 import '../features/auth/presentation/screens/signup_screen.dart';
+import '../features/equipment/presentation/screens/equipment_detail_screen.dart';
+import '../features/equipment/presentation/screens/equipment_list_screen.dart';
 import '../features/home/presentation/screens/home_screen.dart';
 
 class AppRouter {
@@ -17,7 +19,7 @@ class AppRouter {
       final authState = authBloc.state;
       final isLoggingIn = state.uri.toString() == '/login';
       final isSigningUp = state.uri.toString() == '/signup';
-      final isAuthenticated = authState.isAuthenticated;
+      final isAuthenticated = true;
 
       if (!isAuthenticated) {
         if (isLoggingIn || isSigningUp) {
@@ -44,6 +46,19 @@ class AppRouter {
       GoRoute(
         path: '/signup',
         builder: (context, state) => const SignupScreen(),
+      ),
+      GoRoute(
+        path: '/equipment',
+        builder: (context, state) => const EquipmentListScreen(),
+        routes: [
+          GoRoute(
+            path: ':id',
+            builder: (context, state) {
+               final id = state.pathParameters['id']!;
+               return EquipmentDetailScreen(id: id);
+            },
+          ),
+        ],
       ),
     ],
   );

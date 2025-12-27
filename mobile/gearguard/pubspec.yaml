@@ -24,6 +24,8 @@ dependencies:
   #Navigation
   go_router: ^17.0.1
   get_it: ^9.2.0
+  equatable: ^2.0.7
+  dartz: ^0.10.1
 
 dev_dependencies:
   flutter_test:
