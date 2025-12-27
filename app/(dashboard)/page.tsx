@@ -68,7 +68,7 @@ export default function DashboardPage() {
                 setSearchQuery={setSearchQuery}
             />
 
-            <main className="max-w-[1600px] mx-auto px-6 py-8">
+            <main className="max-w-[1600px] mx-auto px-4 py-4 sm:px-6 sm:py-8">
                 {/* KPI Section - Only show on Maintenance tab for managers */}
                 {activeTab === "Maintenance" && isManager && <KPICards />}
 

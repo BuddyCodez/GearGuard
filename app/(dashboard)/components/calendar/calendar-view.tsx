@@ -184,96 +184,101 @@ export function CalendarView() {
 
             {/* Calendar Grid */}
             <div className="flex-1 bg-[#0B0B0D]/40 backdrop-blur-sm rounded-2xl border border-white/5 p-6 shadow-2xl overflow-hidden flex flex-col">
-                {/* Day Headers */}
-                <div className="grid grid-cols-7 mb-4">
-                    {DAYS_OF_WEEK.map((day) => (
-                        <div key={day} className="text-center">
-                            <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
-                                {day}
-                            </span>
-                        </div>
-                    ))}
-                </div>
-
-                {/* Calendar Days */}
-                <div className="grid grid-cols-7 grid-rows-5 gap-3 flex-1 min-h-0">
-                    {calendarDays.map((date, index) => {
-                        const dateKey = date.toDateString()
-                        const dayMaintenance = maintenanceByDate.get(dateKey) || []
-                        const isPast = date < new Date(new Date().setHours(0, 0, 0, 0))
-                        const isHovered = hoveredDay === dateKey
-                        const isCurrentMonthDay = isCurrentMonth(date)
-                        const isTodayDay = isToday(date)
-
-                        return (
-                            <motion.div
-                                key={index}
-                                onMouseEnter={() => setHoveredDay(dateKey)}
-                                onMouseLeave={() => setHoveredDay(null)}
-                                onClick={() => !isPast && handleDateClick(date)}
-                                className={cn(
-                                    "relative flex flex-col p-3 rounded-xl border transition-all duration-200 group overflow-hidden",
-                                    isCurrentMonthDay
-                                        ? "bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10"
-                                        : "bg-transparent border-transparent opacity-30",
-                                    isTodayDay && "bg-indigo-500/5 border-indigo-500/30 shadow-[0_0_15px_rgba(99,102,241,0.1)]",
-                                    !isPast && "cursor-pointer",
-                                    isPast && "cursor-not-allowed"
-                                )}
-                            >
-                                {/* Date Number & Add Button */}
-                                <div className="flex items-center justify-between mb-2">
-                                    <span className={cn(
-                                        "text-sm font-semibold w-7 h-7 flex items-center justify-center rounded-full transition-colors",
-                                        isTodayDay
-                                            ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/30"
-                                            : isCurrentMonthDay ? "text-zinc-300 group-hover:text-white" : "text-zinc-600"
-                                    )}>
-                                        {date.getDate()}
+                {/* Calendar Grid Container with Horizontal Scroll */}
+                <div className="flex-1 min-h-0 overflow-x-auto scrollbar-hide">
+                    <div className="min-w-[800px] h-full flex flex-col">
+                        {/* Day Headers */}
+                        <div className="grid grid-cols-7 mb-4">
+                            {DAYS_OF_WEEK.map((day) => (
+                                <div key={day} className="text-center">
+                                    <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+                                        {day}
                                     </span>
+                                </div>
+                            ))}
+                        </div>
 
-                                    {!isPast && isCurrentMonthDay && (
-                                        <div className={cn(
-                                            "opacity-0 transform translate-x-2 transition-all duration-200",
-                                            isHovered && "opacity-100 translate-x-0"
-                                        )}>
-                                            <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-indigo-500 hover:scale-110 transition-all">
-                                                <Plus className="w-3 h-3" />
-                                            </div>
+                        {/* Calendar Days */}
+                        <div className="grid grid-cols-7 grid-rows-5 gap-3 flex-1 min-h-0">
+                            {calendarDays.map((date, index) => {
+                                const dateKey = date.toDateString()
+                                const dayMaintenance = maintenanceByDate.get(dateKey) || []
+                                const isPast = date < new Date(new Date().setHours(0, 0, 0, 0))
+                                const isHovered = hoveredDay === dateKey
+                                const isCurrentMonthDay = isCurrentMonth(date)
+                                const isTodayDay = isToday(date)
+
+                                return (
+                                    <motion.div
+                                        key={index}
+                                        onMouseEnter={() => setHoveredDay(dateKey)}
+                                        onMouseLeave={() => setHoveredDay(null)}
+                                        onClick={() => !isPast && handleDateClick(date)}
+                                        className={cn(
+                                            "relative flex flex-col p-3 rounded-xl border transition-all duration-200 group overflow-hidden",
+                                            isCurrentMonthDay
+                                                ? "bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10"
+                                                : "bg-transparent border-transparent opacity-30",
+                                            isTodayDay && "bg-indigo-500/5 border-indigo-500/30 shadow-[0_0_15px_rgba(99,102,241,0.1)]",
+                                            !isPast && "cursor-pointer",
+                                            isPast && "cursor-not-allowed"
+                                        )}
+                                    >
+                                        {/* Date Number & Add Button */}
+                                        <div className="flex items-center justify-between mb-2">
+                                            <span className={cn(
+                                                "text-sm font-semibold w-7 h-7 flex items-center justify-center rounded-full transition-colors",
+                                                isTodayDay
+                                                    ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/30"
+                                                    : isCurrentMonthDay ? "text-zinc-300 group-hover:text-white" : "text-zinc-600"
+                                            )}>
+                                                {date.getDate()}
+                                            </span>
+
+                                            {!isPast && isCurrentMonthDay && (
+                                                <div className={cn(
+                                                    "opacity-0 transform translate-x-2 transition-all duration-200",
+                                                    isHovered && "opacity-100 translate-x-0"
+                                                )}>
+                                                    <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-indigo-500 hover:scale-110 transition-all">
+                                                        <Plus className="w-3 h-3" />
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
-                                    )}
-                                </div>
 
-                                {/* Events List */}
-                                <div className="flex-1 flex flex-col gap-1.5 overflow-y-auto overflow-x-hidden scrollbar-hide">
-                                    {dayMaintenance.map((request) => {
-                                        const style = priorityStyles[request.priority as keyof typeof priorityStyles] || priorityStyles.medium
-                                        return (
-                                            <motion.div
-                                                initial={{ opacity: 0, y: 5 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                key={request._id}
-                                                onClick={(e) => {
-                                                    e.stopPropagation()
-                                                    setSelectedRequestId(request._id)
-                                                }}
-                                                className={cn(
-                                                    "group/event relative flex items-center gap-2 px-2 py-1.5 rounded-lg border transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98] w-full",
-                                                    style.bg,
-                                                    style.border
-                                                )}
-                                            >
-                                                <div className={cn("w-1.5 h-1.5 rounded-full shrink-0", style.indicator)} />
-                                                <span className={cn("text-[10px] font-medium truncate flex-1 min-w-0", style.text)}>
-                                                    {request.equipment?.name || request.subject}
-                                                </span>
-                                            </motion.div>
-                                        )
-                                    })}
-                                </div>
-                            </motion.div>
-                        )
-                    })}
+                                        {/* Events List */}
+                                        <div className="flex-1 flex flex-col gap-1.5 overflow-y-auto overflow-x-hidden scrollbar-hide">
+                                            {dayMaintenance.map((request) => {
+                                                const style = priorityStyles[request.priority as keyof typeof priorityStyles] || priorityStyles.medium
+                                                return (
+                                                    <motion.div
+                                                        initial={{ opacity: 0, y: 5 }}
+                                                        animate={{ opacity: 1, y: 0 }}
+                                                        key={request._id}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation()
+                                                            setSelectedRequestId(request._id)
+                                                        }}
+                                                        className={cn(
+                                                            "group/event relative flex items-center gap-2 px-2 py-1.5 rounded-lg border transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98] w-full",
+                                                            style.bg,
+                                                            style.border
+                                                        )}
+                                                    >
+                                                        <div className={cn("w-1.5 h-1.5 rounded-full shrink-0", style.indicator)} />
+                                                        <span className={cn("text-[10px] font-medium truncate flex-1 min-w-0", style.text)}>
+                                                            {request.equipment?.name || request.subject}
+                                                        </span>
+                                                    </motion.div>
+                                                )
+                                            })}
+                                        </div>
+                                    </motion.div>
+                                )
+                            })}
+                        </div>
+                    </div>
                 </div>
             </div>
 

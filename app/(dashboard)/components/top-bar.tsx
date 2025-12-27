@@ -36,13 +36,13 @@ export function TopBar({ currentTab, onTabChange, searchQuery, setSearchQuery }:
         <div className="w-full border-b border-white/10 bg-[#0B0B0D]/50 backdrop-blur-xl sticky top-0 z-30">
             <div className="max-w-[1600px] mx-auto h-16 px-6 flex items-center justify-between gap-8">
                 {/* Left: Tabs */}
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 mask-linear-fade">
                     {tabs.map((tab) => (
                         <button
                             key={tab}
                             onClick={() => onTabChange(tab)}
                             className={cn(
-                                "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+                                "px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap",
                                 currentTab === tab
                                     ? "bg-white/10 text-white"
                                     : "text-zinc-400 hover:text-white hover:bg-white/5"
