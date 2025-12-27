@@ -89,7 +89,6 @@ export function EquipmentDrawer({ initialData, trigger, open: controlledOpen, on
 
     const maintenanceTeamId = form.watch("maintenanceTeamId")
     const teamMembers = useQuery(api.teams.getMembers, maintenanceTeamId ? { teamId: maintenanceTeamId as Id<"teams"> } : "skip")
-    const users = useQuery(api.users.getUsers) // Keep this for fallback or if needed, but we'll use teamMembers for the dropdown
 
     // Reset form when initialData changes
     useEffect(() => {
@@ -203,7 +202,9 @@ export function EquipmentDrawer({ initialData, trigger, open: controlledOpen, on
                                                 <Select onValueChange={field.onChange} value={field.value}>
                                                     <FormControl>
                                                         <SelectTrigger className="bg-white/5 border-white/10 text-white focus:ring-indigo-500/20">
-                                                            <SelectValue>Select Category</SelectValue>
+                                                            <SelectValue>
+                                                                {categories?.find(c => c._id === field.value)?.name || "Select Category"}
+                                                            </SelectValue>
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent className="bg-[#1a1a1c] border-white/10 text-white z-99999">
@@ -262,7 +263,9 @@ export function EquipmentDrawer({ initialData, trigger, open: controlledOpen, on
                                                 <Select onValueChange={field.onChange} value={field.value}>
                                                     <FormControl>
                                                         <SelectTrigger className="bg-white/5 border-white/10 text-white focus:ring-indigo-500/20">
-                                                            <SelectValue>Select Team</SelectValue>
+                                                            <SelectValue>
+                                                                {teams?.find(t => t._id === field.value)?.name || "Select Team"}
+                                                            </SelectValue>
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent className="bg-[#1a1a1c] border-white/10 text-white z-99999">
@@ -290,7 +293,11 @@ export function EquipmentDrawer({ initialData, trigger, open: controlledOpen, on
                                                 <Select onValueChange={field.onChange} value={field.value} disabled={!maintenanceTeamId}>
                                                     <FormControl>
                                                         <SelectTrigger className="bg-white/5 border-white/10 text-white focus:ring-indigo-500/20">
-                                                            <SelectValue>{maintenanceTeamId ? "Select Technician" : "Select Team First"}</SelectValue>
+                                                            <SelectValue>
+                                                                {maintenanceTeamId
+                                                                    ? (teamMembers?.find(u => u._id === field.value)?.name || "Select Technician")
+                                                                    : "Select Team First"}
+                                                            </SelectValue>
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent className="bg-[#1a1a1c] border-white/10 text-white z-99999">

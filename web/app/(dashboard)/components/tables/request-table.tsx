@@ -35,7 +35,11 @@ const typeLabels = {
     preventive: "Preventive",
 }
 
-export function RequestTable() {
+interface RequestTableProps {
+    searchQuery?: string
+}
+
+export function RequestTable({ searchQuery = "" }: RequestTableProps) {
     const requests = useQuery(api.maintenanceRequests.listAllRequests)
     const [filterType, setFilterType] = useState<string>("all")
     const [filterStatus, setFilterStatus] = useState<string>("all")
@@ -55,8 +59,20 @@ export function RequestTable() {
 
     // Filter requests
     const filteredRequests = requests?.filter((req) => {
+        // Type and Status filters
         if (filterType !== "all" && req.type !== filterType) return false
         if (filterStatus !== "all" && req.status !== filterStatus) return false
+
+        // Search query filter
+        if (searchQuery) {
+            const query = searchQuery.toLowerCase()
+            const matchesSubject = req.subject.toLowerCase().includes(query)
+            const matchesEquipment = (req.equipment?.name || "").toLowerCase().includes(query)
+            const matchesTechnician = (req.assignedTechnician?.name || "").toLowerCase().includes(query)
+
+            return matchesSubject || matchesEquipment || matchesTechnician
+        }
+
         return true
     })
 

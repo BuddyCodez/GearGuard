@@ -16,28 +16,23 @@ import {
 import { useState } from "react"
 import { TeamDrawer } from "../drawers/teams/team-drawer"
 
-export function TeamsView() {
+interface TeamsViewProps {
+    searchQuery?: string
+}
+
+export function TeamsView({ searchQuery = "" }: TeamsViewProps) {
     const teams = useQuery(api.teams.list)
-    const [searchQuery, setSearchQuery] = useState("")
 
     const filteredTeams = teams?.filter(team =>
         team.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        team.description?.toLowerCase().includes(searchQuery.toLowerCase())
+        (team.description || "").toLowerCase().includes(searchQuery.toLowerCase())
     )
 
     return (
         <div className="space-y-4">
             {/* Header Actions */}
             <div className="flex items-center justify-between gap-4">
-                <div className="relative flex-1 max-w-sm">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-zinc-400" />
-                    <Input
-                        placeholder="Search teams..."
-                        className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-zinc-500 focus-visible:ring-indigo-500/20"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                </div>
+                <div className="flex-1"></div>
                 <TeamDrawer
                     trigger={
                         <Button className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20 transition-all hover:scale-105 active:scale-95">

@@ -188,3 +188,21 @@ export const getTechnicians = query({
         return allUsers.filter((user) => user.role === "technician" || user.role === "manager");
     },
 });
+
+/**
+ * Public query to get user by email (for mobile API authentication)
+ * No auth required - used only for login verification
+ */
+export const getUserByEmail = query({
+    args: {
+        email: v.string(),
+    },
+    handler: async (ctx, args) => {
+        const user = await ctx.db
+            .query("users")
+            .withIndex("by_email", (q) => q.eq("email", args.email))
+            .first()
+
+        return user
+    },
+})

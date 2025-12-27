@@ -98,4 +98,18 @@ export default defineSchema({
         .index("by_equipment", ["equipmentId"])
         .index("by_assignee", ["assignedTo"])
         .index("by_scheduledDate", ["scheduledDate"]),
+    notifications: defineTable({
+        userId: v.id("users"),
+        type: v.string(), // REQUEST_CREATED, REQUEST_ASSIGNED, REQUEST_STATUS_CHANGED, etc.
+        title: v.string(),
+        message: v.string(),
+
+        entityType: v.optional(v.string()), // "request", "equipment"
+        entityId: v.optional(v.string()),
+
+        read: v.boolean(),
+        createdAt: v.number(),
+    })
+        .index("by_user", ["userId"])
+        .index("by_user_unread", ["userId", "read"]),
 });

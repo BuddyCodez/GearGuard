@@ -1,6 +1,8 @@
+import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { Id } from "./_generated/dataModel";
 import { authComponent } from "./auth";
+import { internal } from "./_generated/api";
 
 /**
  * List maintenance requests created by the current user
@@ -232,6 +234,11 @@ export const create = mutation({
             throw new Error("Equipment not found");
         }
 
+        // ❌ Cannot create requests on scrapped equipment
+        if (equipment.isScrapped) {
+            throw new Error("Cannot create maintenance request for scrapped equipment");
+        }
+
         const now = Date.now();
 
         const requestId = await ctx.db.insert("maintenanceRequests", {
@@ -246,6 +253,25 @@ export const create = mutation({
             createdAt: now,
             updatedAt: now,
         });
+
+        // 🔔 Notify all managers about new request
+        const managers = await ctx.db
+            .query("users")
+            .withIndex("by_role", (q) => q.eq("role", "manager"))
+            .collect();
+
+        await Promise.all(
+            managers.map((manager) =>
+                ctx.scheduler.runAfter(0, internal.notifications.createNotification, {
+                    userId: manager._id,
+                    type: "REQUEST_CREATED",
+                    title: "New maintenance request",
+                    message: `${args.subject} was created`,
+                    entityType: "request",
+                    entityId: requestId,
+                })
+            )
+        );
 
         return requestId;
     },
@@ -279,9 +305,22 @@ export const updateStatus = mutation({
             throw new Error("Unauthorized: Only technicians and managers can update status");
         }
 
+        const request = await ctx.db.get(args.requestId);
+        if (!request) throw new Error("Request not found");
+
         await ctx.db.patch(args.requestId, {
             status: args.status,
             updatedAt: Date.now(),
+        });
+
+        // 🔔 Notify requester about status change
+        await ctx.scheduler.runAfter(0, internal.notifications.createNotification, {
+            userId: request.createdBy,
+            type: "REQUEST_STATUS_CHANGED",
+            title: "Request status updated",
+            message: `Your request status changed to ${args.status}`,
+            entityType: "request",
+            entityId: args.requestId,
         });
     },
 });
@@ -312,6 +351,17 @@ export const assignTechnician = mutation({
         await ctx.db.patch(args.requestId, {
             assignedTo: args.technicianId,
             updatedAt: Date.now(),
+        });
+
+        // 🔔 Notify technician about assignment
+        const request = await ctx.db.get(args.requestId);
+        await ctx.scheduler.runAfter(0, internal.notifications.createNotification, {
+            userId: args.technicianId,
+            type: "REQUEST_ASSIGNED",
+            title: "New request assigned",
+            message: `You were assigned to "${request?.subject || "a request"}"`,
+            entityType: "request",
+            entityId: args.requestId,
         });
     },
 });
@@ -344,7 +394,7 @@ export const updateRequest = mutation({
             .first();
 
         if (!viewer || viewer.role !== "manager") {
-            throw new Error("Unauthorized: Only managers can edit requests");
+            throw new Error("Unauthorized: Only managers can edit request details");
         }
 
         const updates: any = {

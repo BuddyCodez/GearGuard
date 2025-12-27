@@ -28,13 +28,7 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form"
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
+
 
 const categorySchema = z.object({
     name: z.string().min(2, "Name is required"),
@@ -57,7 +51,8 @@ export function CategoryDrawer({ initialData, trigger, open: controlledOpen, onO
 
     const createCategory = useMutation(api.categories.create)
     const updateCategory = useMutation(api.categories.update)
-    const technicians = useQuery(api.users.getTechnicians)
+    const users = useQuery(api.users.getUsers)
+    // console.log(users)
 
     const form = useForm<z.infer<typeof categorySchema>>({
         resolver: zodResolver(categorySchema),
@@ -158,20 +153,25 @@ export function CategoryDrawer({ initialData, trigger, open: controlledOpen, onO
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel className="text-zinc-400">Responsible Person (Optional)</FormLabel>
-                                        <Select onValueChange={field.onChange} value={field.value}>
-                                            <FormControl>
-                                                <SelectTrigger className="bg-white/5 border-white/10 text-white focus:ring-indigo-500/20">
-                                                    <SelectValue>Select Person</SelectValue>
-                                                </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent className="bg-[#1a1a1c] border-white/10 text-white z-999999">
-                                                {technicians?.map((tech) => (
-                                                    <SelectItem key={tech._id} value={tech._id}>
-                                                        {tech.name}
-                                                    </SelectItem>
+                                        <div className="relative">
+                                            <select
+                                                className="w-full appearance-none bg-white/5 border border-white/10 rounded-md py-2 pl-3 pr-8 text-sm text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/20"
+                                                value={field.value || ""}
+                                                onChange={field.onChange}
+                                            >
+                                                <option value="" className="bg-[#1a1a1c] text-zinc-400">Select Person</option>
+                                                {users?.map((user) => (
+                                                    <option key={user._id} value={user._id} className="bg-[#1a1a1c] text-white">
+                                                        {user.name}
+                                                    </option>
                                                 ))}
-                                            </SelectContent>
-                                        </Select>
+                                            </select>
+                                            <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                                                <svg className="h-4 w-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            </div>
+                                        </div>
                                         <FormMessage />
                                     </FormItem>
                                 )}

@@ -51,6 +51,13 @@ const stageLabels = {
     scrap: "Scrapped",
 }
 
+const priorityLabels = {
+    low: "Low - Can wait",
+    medium: "Medium - Normal",
+    high: "High - Important",
+    critical: "Critical - Urgent!",
+}
+
 const requestSchema = z.object({
     subject: z.string().min(5, "Subject must be at least 5 characters"),
     status: z.enum(["new", "in_progress", "repaired", "scrap"]),
@@ -304,7 +311,9 @@ export function ManagerRequestDrawer({ requestId, open, onOpenChange }: ManagerR
                             disabled={isPending}
                         >
                             <SelectTrigger className="bg-white/5 border-white/10 text-white">
-                                <SelectValue />
+                                <SelectValue>
+                                    {priorityLabels[(request.priority || "medium") as keyof typeof priorityLabels]}
+                                </SelectValue>
                             </SelectTrigger>
                             <SelectContent className="bg-[#1a1a1c] border-white/10 text-white">
                                 <SelectItem value="low" className="focus:bg-white/10 focus:text-white">
@@ -373,7 +382,9 @@ export function ManagerRequestDrawer({ requestId, open, onOpenChange }: ManagerR
                             disabled={isPending}
                         >
                             <SelectTrigger className="bg-white/5 border-white/10 text-white">
-                                <SelectValue />
+                                <SelectValue>
+                                    {request.assignedTechnician?.name || "Unassigned"}
+                                </SelectValue>
                             </SelectTrigger>
                             <SelectContent className="bg-[#1a1a1c] border-white/10 text-white">
                                 <SelectItem value="unassigned" className="focus:bg-white/10">
@@ -412,7 +423,9 @@ export function ManagerRequestDrawer({ requestId, open, onOpenChange }: ManagerR
                         <label className="text-sm text-yellow-400 font-medium">Change Status</label>
                         <Select value={request.status} onValueChange={(value) => value && handleStatusChange(value)} disabled={isPending}>
                             <SelectTrigger className="bg-white/5 border-white/10 text-white">
-                                <SelectValue />
+                                <SelectValue>
+                                    {stageLabels[request.status as keyof typeof stageLabels]}
+                                </SelectValue>
                             </SelectTrigger>
                             <SelectContent className="bg-[#1a1a1c] border-white/10 text-white">
                                 <SelectItem value="new" className="focus:bg-white/10 focus:text-white">
