@@ -5,6 +5,7 @@ import { LayoutGrid, List } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useQuery } from "convex/react"
 import { api } from "@/convex/_generated/api"
+import { authClient } from "@/lib/auth-client"
 
 import { TopBar } from "./components/top-bar"
 import { KPICards } from "./components/kpi/kpi-cards"
@@ -17,7 +18,6 @@ import { UserRequestsView } from "./components/views/user-requests-view"
 import { TechnicianView } from "./components/views/technician-view"
 import { ReportsView } from "./components/views/reports-view"
 import { LoggedOutView } from "./components/views/logged-out-view"
-import { UserSync } from "@/components/web/user-sync"
 import { canViewKanban } from "@/lib/permissions"
 
 export default function DashboardPage() {
@@ -26,13 +26,26 @@ export default function DashboardPage() {
     const [searchQuery, setSearchQuery] = useState("")
     const user = useQuery(api.users.getViewer)
 
+    const { data: session, isPending: isAuthPending } = authClient.useSession()
+
     // Show logged out view if no user (preloaded query will make this instant)
-    if (user === undefined) {
+    if (user === undefined || isAuthPending) {
         // Still loading
         return null
     }
 
     if (user === null) {
+        // If we have a session but no user record yet, we are syncing
+        if (session) {
+            return (
+                <div className="min-h-screen bg-[#0B0B0D] flex items-center justify-center">
+                    <div className="animate-pulse flex flex-col items-center gap-4">
+                        <div className="h-12 w-12 rounded-full bg-white/10" />
+                        <div className="h-4 w-32 rounded bg-white/10" />
+                    </div>
+                </div>
+            )
+        }
         return <LoggedOutView />
     }
 
@@ -48,7 +61,6 @@ export default function DashboardPage() {
 
     return (
         <div className="min-h-screen bg-[#0B0B0D] text-white font-sans selection:bg-white/20">
-            <UserSync />
             <TopBar
                 currentTab={activeTab}
                 onTabChange={handleTabChange}

@@ -77,20 +77,20 @@ export function EquipmentView({ searchQuery = "" }: EquipmentViewProps) {
                     </Button>
                 </div>
                 <div className="flex items-center gap-2">
-                    {view === "equipment" && (
+                    {view === "equipment" && isManager && (
                         <EquipmentDrawer
                             trigger={
-                                <Button disabled={!isManager} className={cn("bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20 transition-all hover:scale-105 active:scale-95", !isManager && "opacity-50 cursor-not-allowed")}>
+                                <Button className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20 transition-all hover:scale-105 active:scale-95">
                                     <Plus className="w-4 h-4 mr-2" />
                                     Add Equipment
                                 </Button>
                             }
                         />
                     )}
-                    {view === "categories" && (
+                    {view === "categories" && isManager && (
                         <CategoryDrawer
                             trigger={
-                                <Button disabled={!isManager} className={cn("bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20 transition-all hover:scale-105 active:scale-95", !isManager && "opacity-50 cursor-not-allowed")}>
+                                <Button className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20 transition-all hover:scale-105 active:scale-95">
                                     <Plus className="w-4 h-4 mr-2" />
                                     Add Category
                                 </Button>

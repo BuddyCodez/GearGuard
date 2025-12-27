@@ -4,6 +4,8 @@ import { AuthDrawer } from "@/components/web/auth-drawer"
 import { useAuthDrawer } from "@/hooks/use-auth-drawer"
 import { useEffect, useState } from "react"
 
+import { UserSync } from "@/components/web/user-sync"
+
 export default function DashboardLayout({
     children,
 }: {
@@ -19,6 +21,7 @@ export default function DashboardLayout({
 
     return (
         <>
+            <UserSync />
             {children}
             {mounted && <AuthDrawer open={isOpen} onOpenChange={close} />}
         </>

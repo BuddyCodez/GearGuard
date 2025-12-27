@@ -208,7 +208,6 @@ export function CalendarView() {
                         return (
                             <motion.div
                                 key={index}
-                                layoutId={dateKey}
                                 onMouseEnter={() => setHoveredDay(dateKey)}
                                 onMouseLeave={() => setHoveredDay(null)}
                                 onClick={() => !isPast && handleDateClick(date)}
@@ -246,8 +245,8 @@ export function CalendarView() {
                                 </div>
 
                                 {/* Events List */}
-                                <div className="flex-1 flex flex-col gap-1.5 overflow-y-auto scrollbar-hide">
-                                    {dayMaintenance.slice(0, 3).map((request) => {
+                                <div className="flex-1 flex flex-col gap-1.5 overflow-y-auto overflow-x-hidden scrollbar-hide">
+                                    {dayMaintenance.map((request) => {
                                         const style = priorityStyles[request.priority as keyof typeof priorityStyles] || priorityStyles.medium
                                         return (
                                             <motion.div
@@ -259,24 +258,18 @@ export function CalendarView() {
                                                     setSelectedRequestId(request._id)
                                                 }}
                                                 className={cn(
-                                                    "group/event relative flex items-center gap-2 px-2 py-1.5 rounded-lg border transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98]",
+                                                    "group/event relative flex items-center gap-2 px-2 py-1.5 rounded-lg border transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98] w-full",
                                                     style.bg,
                                                     style.border
                                                 )}
                                             >
                                                 <div className={cn("w-1.5 h-1.5 rounded-full shrink-0", style.indicator)} />
-                                                <span className={cn("text-[10px] font-medium truncate", style.text)}>
+                                                <span className={cn("text-[10px] font-medium truncate flex-1 min-w-0", style.text)}>
                                                     {request.equipment?.name || request.subject}
                                                 </span>
                                             </motion.div>
                                         )
                                     })}
-
-                                    {dayMaintenance.length > 3 && (
-                                        <div className="text-[10px] font-medium text-zinc-500 pl-1 hover:text-zinc-300 transition-colors">
-                                            +{dayMaintenance.length - 3} more events
-                                        </div>
-                                    )}
                                 </div>
                             </motion.div>
                         )

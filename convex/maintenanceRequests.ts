@@ -308,6 +308,10 @@ export const updateStatus = mutation({
         const request = await ctx.db.get(args.requestId);
         if (!request) throw new Error("Request not found");
 
+        if (args.status === "scrap" && viewer.role !== "manager") {
+            throw new Error("Unauthorized: Only managers can scrap equipment");
+        }
+
         await ctx.db.patch(args.requestId, {
             status: args.status,
             updatedAt: Date.now(),

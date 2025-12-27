@@ -73,6 +73,8 @@ interface ManagerRequestDrawerProps {
 export function ManagerRequestDrawer({ requestId, open, onOpenChange }: ManagerRequestDrawerProps) {
     const request = useQuery(api.maintenanceRequests.getRequestDetails, { requestId })
     const technicians = useQuery(api.users.getTechnicians)
+    const viewer = useQuery(api.users.getViewer)
+    const isManager = viewer?.role === "manager"
     const updateStatus = useMutation(api.maintenanceRequests.updateStatus)
     const assignTechnician = useMutation(api.maintenanceRequests.assignTechnician)
     const updateRequest = useMutation(api.maintenanceRequests.updateRequest)
@@ -440,9 +442,11 @@ export function ManagerRequestDrawer({ requestId, open, onOpenChange }: ManagerR
                                 <SelectItem value="repaired" className="focus:bg-white/10 focus:text-white">
                                     Repaired
                                 </SelectItem>
-                                <SelectItem value="scrap" className="focus:bg-white/10 focus:text-white">
-                                    Scrap
-                                </SelectItem>
+                                {isManager && (
+                                    <SelectItem value="scrap" className="focus:bg-white/10 focus:text-white">
+                                        Scrap
+                                    </SelectItem>
+                                )}
                             </SelectContent>
                         </Select>
                     </div>
@@ -469,8 +473,8 @@ export function ManagerRequestDrawer({ requestId, open, onOpenChange }: ManagerR
                         </div>
                     </div>
 
-                    {/* Scrap Equipment - Danger Zone */}
-                    {request.status !== "scrap" && (
+                    {/* Scrap Equipment - Danger Zone - Managers Only */}
+                    {isManager && request.status !== "scrap" && (
                         <div className="p-4 rounded-lg bg-red-500/5 border border-red-500/20">
                             <div className="flex items-start gap-3 mb-3">
                                 <AlertTriangle className="w-5 h-5 text-red-400 mt-0.5" />

@@ -51,7 +51,9 @@ export function CategoryDrawer({ initialData, trigger, open: controlledOpen, onO
 
     const createCategory = useMutation(api.categories.create)
     const updateCategory = useMutation(api.categories.update)
-    const users = useQuery(api.users.getUsers)
+    const viewer = useQuery(api.users.getViewer)
+    const isManager = viewer?.role === "manager"
+    const users = useQuery(api.users.getUsers, isManager ? {} : "skip")
     // console.log(users)
 
     const form = useForm<z.infer<typeof categorySchema>>({

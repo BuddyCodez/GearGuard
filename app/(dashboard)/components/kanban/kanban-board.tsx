@@ -5,7 +5,7 @@ import { api } from "@/convex/_generated/api"
 import { useState, useMemo } from "react"
 import { Id } from "@/convex/_generated/dataModel"
 import { ManagerRequestDrawer } from "@/app/(dashboard)/components/drawers/maintenance/manager-request-drawer"
-import { AlertTriangle, User, Package } from "lucide-react"
+import { AlertTriangle, User, Package, Lock } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 
@@ -82,7 +82,10 @@ export function KanbanBoard({ searchQuery = "" }: KanbanBoardProps) {
         e.dataTransfer.effectAllowed = "move"
     }
 
-    const handleDragOver = (e: React.DragEvent) => {
+    const handleDragOver = (e: React.DragEvent, status: Status) => {
+        if (status === "scrap" && !isManager) {
+            return
+        }
         e.preventDefault()
         e.dataTransfer.dropEffect = "move"
     }
@@ -154,9 +157,15 @@ export function KanbanBoard({ searchQuery = "" }: KanbanBoardProps) {
                     return (
                         <div
                             key={status}
-                            onDragOver={handleDragOver}
-                            onDrop={(e) => handleDrop(e, status)}
-                            className="flex flex-col bg-[#0B0B0D]/50 rounded-xl border border-white/5 p-4 min-h-[600px] transition-colors hover:border-white/10"
+                            onDragOver={(e) => handleDragOver(e, status)}
+                            onDrop={(e) => {
+                                if (status === "scrap" && !isManager) return
+                                handleDrop(e, status)
+                            }}
+                            className={cn(
+                                "flex flex-col bg-[#0B0B0D]/50 rounded-xl border border-white/5 p-4 min-h-[600px] transition-colors",
+                                status === "scrap" && !isManager ? "opacity-50 cursor-not-allowed border-red-500/10 bg-red-500/5" : "hover:border-white/10"
+                            )}
                         >
                             {/* Column Header */}
                             <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/10">
@@ -166,7 +175,8 @@ export function KanbanBoard({ searchQuery = "" }: KanbanBoardProps) {
                                         {statusLabels[status]}
                                     </h3>
                                 </div>
-                                <span className="text-xs font-medium text-zinc-500 bg-white/5 px-2 py-1 rounded-full">
+                                <span className="text-xs font-medium text-zinc-500 bg-white/5 px-2 py-1 rounded-full flex items-center gap-1">
+                                    {status === "scrap" && !isManager && <Lock className="w-3 h-3" />}
                                     {columnRequests.length}
                                 </span>
                             </div>
